@@ -14,9 +14,10 @@ def create_heatmap(depth_data):
     return Image.fromarray(heatmap)
 
 def smooth_depth_data(depth_data):
-    kernel = np.array([[0, 1, 0],
-                       [1, 4, 1],
-                       [0, 1, 0]]) / 8
+    # Updated kernel for better noise reduction
+    kernel = np.array([[1, 2, 1],
+                       [2, 4, 2],
+                       [1, 2, 1]]) / 16  # Gaussian kernel
     smoothed = np.copy(depth_data)
     height, width = depth_data.shape
 
