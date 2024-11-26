@@ -30,15 +30,17 @@ class HeatmapGUI:
             return
 
         # Apply smoothing
-        from heatmap_display import smooth_depth_data, create_heatmap
+        from src.heatmap_display import create_heatmap
+        from src.filter import smooth_depth_data
         smoothed_frame = smooth_depth_data(current_frame)
         heatmap_image = create_heatmap(smoothed_frame)
 
         # Update GUI
         photo = ImageTk.PhotoImage(heatmap_image.resize((1200, 900)))
+        print(f"Frame: {self.current_frame_index}")
         self.label.config(image=photo)
         self.label.image = photo
 
         # Next frame
         self.current_frame_index += 1
-        self.root.after(1000, self.update_frame)
+        self.root.after(100, self.update_frame)
