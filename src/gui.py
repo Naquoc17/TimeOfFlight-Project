@@ -41,4 +41,4 @@ class HeatmapGUI:
 
         # Next frame
         self.current_frame_index += 1
-        self.root.after(100, self.update_frame)
+        self.root.after(1000, self.update_frame)

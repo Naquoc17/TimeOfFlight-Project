@@ -6,7 +6,8 @@ def frame_filter(frame):
     min = np.min(frame)
     filter = max - min
     print(f"{np.max(frame)} - {np.min(frame)}")
-    if min<100 or max>3100 or filter < 1000: # Adjust this threshold as needed
+    # if min<100 or max>3100 or filter < 1000: # Adjust this threshold as needed
+    if  filter < 1000: # Adjust this threshold as needed
         return True
     return False
 

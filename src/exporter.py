@@ -1,39 +1,63 @@
 import numpy as np
 import os
 
-def export_frames(file_path, output_dir, width=80, height=60, depth_size=8):
-    frame_size = width * height * depth_size
 
-    if not os.path.exists(output_dir):
-        os.makedirs(output_dir)
+def read_depth_data(buffer, width, height, depth_size):
+    """
+    Reads depth data from a binary buffer and returns it as a 2D NumPy array.
+
+    Args:
+        buffer (bytes): Binary data for a single frame.
+        width (int): Width of the frame.
+        height (int): Height of the frame.
+        depth_size (int): Number of bytes per depth value.
+
+    Returns:
+        np.ndarray: 2D array of depth values.
+    """
+    if depth_size == 1:
+        # Interpret buffer as unsigned 8-bit integers
+        depth_data = np.frombuffer(buffer, dtype=np.uint8).reshape((height, width))
+    elif depth_size == 2:
+        # Interpret buffer as unsigned 16-bit big-endian integers
+        depth_data = np.frombuffer(buffer, dtype='>u2').reshape((height, width))
+    elif depth_size == 4:
+        # Interpret buffer as signed 32-bit big-endian integers
+        depth_data = np.frombuffer(buffer, dtype='>i4').reshape((height, width))
+    elif depth_size == 8:
+        # Interpret buffer as 64-bit little-endian floating-point numbers
+        depth_data = np.frombuffer(buffer, dtype='<f8').reshape((height, width))
+    else:
+        raise ValueError("Unsupported depth size")
+    return depth_data
+
+
+def export_frames(file_path, output_dir, width=80, height=60, depth_size=8):
+    """
+    Exports frames from a binary file into .npy files for each frame.
+
+    Args:
+        file_path (str): Path to the binary file.
+        output_dir (str): Directory to save the exported frames.
+        width (int): Width of each frame.
+        height (int): Height of each frame.
+        depth_size (int): Number of bytes per depth value.
+    """
+    frame_size = width * height * depth_size  # Calculate total bytes per frame
+    os.makedirs(output_dir, exist_ok=True)  # Ensure the output directory exists
 
     with open(file_path, "rb") as f:
         frame_index = 0
         while True:
+            # Read binary data for one frame
             buffer = f.read(frame_size)
             if len(buffer) != frame_size:
+                # Stop if the remaining data is less than a full frame
                 break
 
-            depth_data = np.zeros((height, width), dtype=np.float64)
-            index = 0
-            for y in range(height):
-                for x in range(width):
-                    if depth_size == 1:
-                        depth = buffer[index]
-                        index += 1
-                    elif depth_size == 2:
-                        depth = int.from_bytes(buffer[index:index+2], byteorder='big')
-                        index += 2
-                    elif depth_size == 4:
-                        depth = np.frombuffer(buffer[index:index+4], dtype='>i4')[0]
-                        index += 4
-                    elif depth_size == 8:
-                        depth = np.frombuffer(buffer[index:index+8], dtype='<f8')[0]
-                        index += 8
-                    else:
-                        raise ValueError("Unsupported depth size")
-                    depth_data[y, x] = depth
-
+            # Convert binary buffer into a 2D NumPy array
+            depth_data = read_depth_data(buffer, width, height, depth_size)
+            # Save the frame as a .npy file
             np.save(os.path.join(output_dir, f"frame_{frame_index}.npy"), depth_data)
             frame_index += 1
 
@@ -41,45 +65,34 @@ def export_frames(file_path, output_dir, width=80, height=60, depth_size=8):
 
 
 def export_frames_to_text(file_path, output_dir, width=80, height=60, depth_size=8):
-    frame_size = width * height * depth_size
+    """
+    Exports frames from a binary file into .txt files for each frame.
 
-    if not os.path.exists(output_dir):
-        os.makedirs(output_dir)
+    Args:
+        file_path (str): Path to the binary file.
+        output_dir (str): Directory to save the exported frames.
+        width (int): Width of each frame.
+        height (int): Height of each frame.
+        depth_size (int): Number of bytes per depth value.
+    """
+    frame_size = width * height * depth_size  # Calculate total bytes per frame
+    os.makedirs(output_dir, exist_ok=True)  # Ensure the output directory exists
 
     with open(file_path, "rb") as f:
         frame_index = 0
         while True:
+            # Read binary data for one frame
             buffer = f.read(frame_size)
             if len(buffer) != frame_size:
+                # Stop if the remaining data is less than a full frame
                 break
 
-            depth_data = []
-            index = 0
-            for y in range(height):
-                row = []
-                for x in range(width):
-                    if depth_size == 1:
-                        depth = buffer[index]
-                        index += 1
-                    elif depth_size == 2:
-                        depth = int.from_bytes(buffer[index:index+2], byteorder='big')
-                        index += 2
-                    elif depth_size == 4:
-                        depth = int.from_bytes(buffer[index:index+4], byteorder='big', signed=True)
-                        index += 4
-                    elif depth_size == 8:
-                        depth = float.fromhex(buffer[index:index+8].hex())
-                        index += 8
-                    else:
-                        raise ValueError("Unsupported depth size")
-                    row.append(depth)
-                depth_data.append(row)
+            # Convert binary buffer into a 2D NumPy array
+            depth_data = read_depth_data(buffer, width, height, depth_size)
 
-            # Record frames into txt
+            # Save the depth data as a text file
             output_file = os.path.join(output_dir, f"frame_{frame_index}.txt")
-            with open(output_file, "w") as frame_file:
-                for row in depth_data:
-                    frame_file.write(" ".join(map(str, row)) + "\n")
+            np.savetxt(output_file, depth_data, fmt='%s', delimiter=" ")
             frame_index += 1
 
     print(f"Exported {frame_index} frames to {output_dir}")
