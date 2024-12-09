@@ -1,38 +1,46 @@
 import numpy as np
-from scipy.ndimage import label
 
-def frame_filter(frame):
-    max = np.max(frame)
-    min = np.min(frame)
-    filter = max - min
-    print(f"{np.max(frame)} - {np.min(frame)}")
-    if min<100 or max>3050 or filter < 1000: # Adjust this threshold as needed
-        return True
-    return False
+def detect_human(current_frame, first_frame):
+    """
+    Detect humans in the current frame based on the given conditions.
 
-def detect_human_head(depth_data, variance_threshold=600000, size_range=(100, 1500)):
-    # Calculate variance
-    variance = np.var(depth_data)
-    if variance < variance_threshold:
-        return None  # Frame is uniform, skip it
+    Parameters:
+    - current_frame: numpy.ndarray, the current frame data
+    - first_frame: numpy.ndarray, the first frame data to compare with
 
-    # Apply fixed threshold to eliminate background noise
-    binary_image = np.zeros_like(depth_data)
-    binary_image[depth_data > variance_threshold] = 1
+    Returns:
+    - List of coordinates representing detected humans
+    """
+    # Điều kiện 1: Xử lý các điểm không đủ chênh lệch hoặc vượt giới hạn
+    processed_frame = np.copy(current_frame)
+    diff = np.abs(current_frame - first_frame)
 
-    # Label connected regions
-    labeled_image, num_features = label(binary_image)
+    # Bỏ qua điểm nếu chênh lệch nhỏ hơn hoặc bằng 300
+    processed_frame[diff <= 300] = 0
 
-    # Filter regions based on size
-    for region in range(1, num_features + 1):
-        region_size = np.sum(labeled_image == region)
-        if region_size < size_range[0] or region_size > size_range[1]:
-            labeled_image[labeled_image == region] = 0
+    # Đặt giá trị về giống frame đầu tiên nếu chênh lệch vượt quá 2000
+    processed_frame[diff > 2000] = first_frame[diff > 2000]
 
-    return labeled_image
+    # Điều kiện 2: Tìm điểm có giá trị từ 40 đến 400
+    possible_heads = np.where((processed_frame >= 40) & (processed_frame <= 400))
+    head_points = list(zip(possible_heads[0], possible_heads[1]))
 
-def detect_movement(previous_frame, current_frame, threshold=500):
-    difference = np.abs(current_frame - previous_frame)
-    movement_count = np.sum(difference > threshold)
-    print(f"Detected movement in {movement_count} pixels.")
-    return movement_count
+    # Loại bỏ các điểm đã bị bỏ qua trong điều kiện 1
+    valid_heads = [
+        (x, y) for x, y in head_points if processed_frame[x, y] != 0
+    ]
+
+    # Điều kiện 3: Xác nhận người dựa trên trung bình ô vuông 10x10
+    detected_humans = []
+    for x, y in valid_heads:
+        # Lấy ô vuông 10x10
+        x_min, x_max = max(0, x - 5), min(processed_frame.shape[0], x + 5)
+        y_min, y_max = max(0, y - 5), min(processed_frame.shape[1], y + 5)
+        square = processed_frame[x_min:x_max, y_min:y_max]
+
+        # Tính trung bình
+        avg_value = np.mean(square)
+        if abs(avg_value - processed_frame[x, y]) <= 50:
+            detected_humans.append((x, y))
+
+    return detected_humans

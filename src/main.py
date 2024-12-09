@@ -9,6 +9,7 @@ def main():
         print("No frames found!")
         return
 
+    # Start the GUI for heatmap visualization
     HeatmapGUI(frames)
 
 if __name__ == "__main__":
