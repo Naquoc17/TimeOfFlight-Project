@@ -43,12 +43,12 @@ class HeatmapGUI:
         heatmap_image = create_heatmap(smooth_depth_data(current_frame))
 
         humans = detect_human(current_frame, self.frames[0])
-        print(f"Detected humans at: {humans}")
+        print(f"Frame: {self.current_frame_index} - Detected humans at: {humans}")
 
 
         # Update GUI
         photo = ImageTk.PhotoImage(heatmap_image.resize((800, 600)))
-        print(f"Frame: {self.current_frame_index} - max: {np.max(current_frame)} - min: {np.min(current_frame)} - {np.unravel_index(np.argmin(current_frame), current_frame.shape)}")
+        #print(f"Frame: {self.current_frame_index} - max: {np.max(current_frame)} - min: {np.min(current_frame)} - {np.unravel_index(np.argmin(current_frame), current_frame.shape)}")
         self.label.config(image=photo)
         self.label.image = photo
 
