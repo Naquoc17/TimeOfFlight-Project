@@ -1,5 +1,5 @@
 import numpy as np
-from scipy.ndimage import gaussian_filter, median_filter, label, find_objects
+from scipy.ndimage import gaussian_filter, median_filter
 
 
 def smooth_depth_data(depth_data, use_median_filter=True, use_gaussian_filter=True):
