@@ -1,4 +1,6 @@
 import numpy as np
+from scipy.ndimage import median_filter
+
 
 def detect_human(current_frame, first_frame):
     """
@@ -14,15 +16,17 @@ def detect_human(current_frame, first_frame):
     # Condition 1: Process points with insufficient differences or exceeding thresholds
     processed_frame = np.copy(current_frame)
     diff = np.abs(current_frame - first_frame)
-    # for row in diff:
-    #     print(" ".join(map(str, row)))
+    for row in diff:
+        print(" ".join(map(str, row)))
 
     # Ignore points where the difference is less than or equal to 300
-    binary_frame = diff.astype(str)
-    binary_frame[diff <= 300] = "0"
-    binary_frame[(diff > 300) & (diff <= 500)] = "1"
-    binary_frame[(diff > 500)] = " "
-    print(f"binary frame: {binary_frame}")
+    binary_frame = median_filter(diff, size=3)
+    binary_frame = binary_frame.astype(str)
+    binary_frame[diff <= 900] = "0"
+    # binary_frame[(diff > 450) & (diff <= 470)] = "1"
+    binary_frame[(diff > 900) & (diff <= 2600)] = " "
+    binary_frame[(diff > 2600)] = "1"
+    print(f"binary frame:")
     for row in binary_frame:
         print(" ".join(row))
 
