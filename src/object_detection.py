@@ -16,8 +16,6 @@ def detect_human(current_frame, first_frame):
     # Condition 1: Process points with insufficient differences or exceeding thresholds
     processed_frame = np.copy(current_frame)
     diff = np.abs(current_frame - first_frame)
-    for row in diff:
-        print(" ".join(map(str, row)))
 
     # Ignore points where the difference is less than or equal to 300
     binary_frame = median_filter(diff, size=3)
@@ -38,23 +36,7 @@ def detect_human(current_frame, first_frame):
 
     head_points = list(zip(possible_heads[0], possible_heads[1]))
 
-    # Exclude points ignored in Condition 1
-    valid_heads = [
-        (x, y) for x, y in head_points if processed_frame[x, y] != 0
-    ]
-    print(f"valid_heads: {valid_heads}")
-
     # Condition 3: Confirm humans based on the average value within a 10x10 square
     detected_humans = []
-    for x, y in valid_heads:
-        # Extract a 10x10 square around the point
-        x_min, x_max = max(0, x - 5), min(processed_frame.shape[0], x + 5)
-        y_min, y_max = max(0, y - 5), min(processed_frame.shape[1], y + 5)
-        square = processed_frame[x_min:x_max, y_min:y_max]
-
-        # Calculate the average value
-        avg_value = np.mean(square)
-        if abs(avg_value - processed_frame[x, y]) <= 50:
-            detected_humans.append((x, y))
 
     return detected_humans

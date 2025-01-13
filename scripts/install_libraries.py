@@ -10,7 +10,9 @@ def install_libraries():
     libraries = [
         "scipy",
         "numpy",
-        "Pillow"  # PIL is now part of Pillow package
+        "Pillow",  # PIL is now part of Pillow package
+        "opencv-python",
+        "ultralytics",
     ]
 
     for library in libraries:

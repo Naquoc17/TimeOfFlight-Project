@@ -25,25 +25,7 @@ class HeatmapGUI:
 
         current_frame = self.frames[self.current_frame_index]
 
-        # If this is the first frame, initialize the previous frame and skip processing
-        # if self.previous_frame is None:
-        #     self.previous_frame = current_frame
-        #     self.current_frame_index += 1
-        #     self.root.after(100, self.update_frame)
-        #     return
-
-
-        # Skip frame if ...
-        # if frame_filter(current_frame):
-        #     print(f"Skipping frame {self.current_frame_index} due to low quality.")
-        #     self.current_frame_index += 1
-        #     self.root.after(100, self.update_frame)
-        #     return
-
-        heatmap_image = create_heatmap(smooth_depth_data(current_frame))
-
-        humans = detect_human(current_frame, self.frames[0])
-        print(f"Frame: {self.current_frame_index} - Detected humans at: {humans}")
+        heatmap_image = create_heatmap(current_frame)
 
 
         # Update GUI

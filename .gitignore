@@ -1,5 +1,8 @@
 *.npy
 *.txt
 __pycache__/
+data/
+exported_frames/
+output/
 venv/
 .env
