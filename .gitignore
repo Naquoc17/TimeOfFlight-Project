@@ -3,6 +3,7 @@
 __pycache__/
 data/
 exported_frames/
-output/
+output/video
+output/detection_video
 venv/
 .env
