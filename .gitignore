@@ -1,7 +1,6 @@
 *.npy
 *.txt
 __pycache__/
-data/
 exported_frames/
 output/video
 output/detection_video
